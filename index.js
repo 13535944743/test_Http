@@ -1,25 +1,21 @@
-const http = require('http');
+var url = require('url');
+var https = require('https');
+var { SocksProxyAgent } = require('socks-proxy-agent');
 
-const options = {
-  hostname: 'www.google.com',
-  path: '/',
-  method: 'GET',
-  headers: {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.36'
-  },
-  timeout: 60000
-};
+const fs = require('fs');
+const { stdin } = require('process');
 
-const req = http.request(options, (res) => {
-  console.log(`statusCode: ${res.statusCode}`);
+// SOCKS proxy to connect to
+var proxy = 'socks://127.0.0.1:10808';
 
-  res.on('data', (d) => {
-    process.stdout.write(d);
-  });
+// HTTP endpoint for the proxy to connect to
+var endpoint = 'https://www.google.com';
+var opts = url.parse(endpoint);
+
+// create an instance of the `SocksProxyAgent` class with the proxy server information
+var agent = new SocksProxyAgent(proxy);
+opts.agent = agent;
+
+https.get(opts, function (res) {
+  res.pipe(process.stdout);
 });
-
-req.on('error', (error) => {
-  console.error(error);
-});
-
-req.end();
